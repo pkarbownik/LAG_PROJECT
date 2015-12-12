@@ -1,0 +1,49 @@
+#define FALLING_SLOPE 0
+#define RISING_SLOPE 1
+
+uint8_t x_slope = FALLING_SLOPE;
+uint8_t x_count = 0;
+
+timer_0_code()
+{
+	if (!count) // if motor step is expected to be performed
+	{
+		if(x_slope == FALLING_SLOPE)
+		{
+			set_pin_high(X_STEP_PIN);
+			x_slope = RISING_SLOPE;
+		}
+		else
+		{
+			set_pin_low(X_STEP_PIN);
+			x_slope = FALLING_SLOPE;
+			x_count--;
+		}
+	}
+}
+
+
+main()
+{
+	timer_start(X_TIMER, MIN_DELAY_TIME, 10, DIR_LEFT);
+}
+
+timer_start(uint8_t timer, uint16_t time, uint8_t total_steps, uint8_t direction)
+{
+	if (timer == X_TIMER)
+	{
+		x_count = total_steps;
+		x_slope = FALLING_SLOPE;
+		if(direction == DIR_LEFT)
+		{
+			set_pin_high(X_DIR_PIN);
+		}
+		else
+		{
+			set_pin_low(X_DIR_PIN);
+		}
+		init_timer_0(time);
+	}
+	
+	
+}
