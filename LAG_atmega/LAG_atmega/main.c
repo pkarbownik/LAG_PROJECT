@@ -13,6 +13,7 @@
 #include <avr/io.h>
 #include <util/delay.h>
 #include <avr/interrupt.h>
+#include "main.h"
 #include "pinout.h"
 #include "usart.h"
 #include "tpm.h"
@@ -25,8 +26,8 @@ ISR(TIMER0_OVF_vect)
 {
 	if(count0)
 	{
-		PORTA^=X_STEP_PIN;						//toggle x
-		if(!(--count0)) PORTA|=X_ENABLE_PIN;	//stepping is done, so disable 
+		toggle_pin(X_STEP_PIN);						//toggle x
+		if(!(--count0)) set_pin_high(X_ENABLE_PIN);	//stepping is done, so disable 
 		TCNT0=255-a;							//set start of countering
 	}
 }
@@ -35,8 +36,8 @@ ISR(TIMER2_OVF_vect)
 {
 	if(count2)
 	{
-		PORTA^=Y_STEP_PIN;						//toggle x
-		if(!(--count2)) PORTA|=Y_ENABLE_PIN;	//stepping is done, so disable
+		toggle_pin(Y_STEP_PIN);						//toggle x
+		if(!(--count2)) set_pin_high(Y_ENABLE_PIN);	//stepping is done, so disable
 		TCNT2=255-b;							//set start of countering
 	}
 }
@@ -52,6 +53,7 @@ int main(void)
 {
 	DDRA=0xff;
 	PORTA=0;
+	disable_motors();
 	Timer0_Init();
 	Timer2_Init();
 	USART_Init();
@@ -61,14 +63,30 @@ int main(void)
 	while(1)
 	{
 		a=USART_Receive();		//receive start of countering from UASRT
-		PORTA&=~X_ENABLE_PIN;	//enable
-		count0=100;				//number of steps
-		
 		b=USART_Receive();		//receive start of countering from UASRT
-		PORTA&=~Y_ENABLE_PIN;	//enable
-		count2=200;				//number of steps
+		enable_motors();
+		
+		if (((a >> 7) & 0x01) == 0x01) PORTA |= X_DIR_PIN; else PORTA &= ~X_DIR_PIN;
+		count0=(a & 0x7F) * 8;				//number of steps
+
+		if (((b >> 7) & 0x01) == 0x01) PORTA |= Y_DIR_PIN; else PORTA &= ~Y_DIR_PIN;
+		count2=(b & 0x7F) * 8;			//number of steps
 	}
 }
 
+void set_pin_high(uint8_t pin) { PORTA |= pin; }
+void set_pin_low(uint8_t pin)  { PORTA &= ~pin; }
+void toggle_pin(uint8_t pin)   { PORTA ^= pin; }
 
+void enable_motors(void)
+{		
+	set_pin_low(X_ENABLE_PIN);
+	set_pin_low(Y_ENABLE_PIN);
+}
+
+void disable_motors(void)
+{
+	set_pin_high(X_ENABLE_PIN);
+	set_pin_high(Y_ENABLE_PIN);
+}
 

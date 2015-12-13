@@ -1,0 +1,126 @@
+#define FALLING_SLOPE   0x00
+#define RISING_SLOPE    0x01
+#define DIR_LEFT        0x00
+#define DIR_RIGHT       0x01
+#define X_TIMER         0x00
+#define Y_TIMER         0x01
+#define STEPS_PER_LSB   0x01 /* Number of steps to perform on minimal accelerometer change */
+#define MIN_MOTOR_PERIOD 20 /* 20ms */ 
+
+uint8_t x_slope = FALLING_SLOPE;
+int8_t x_pos = 0;
+int8_t y_pos = 0;
+int8_t x_steps, y_steps;
+uint32_t x_delay, y_delay;
+
+timer_x_code()
+{
+	if (!x_steps) // if motor step is expected to be performed
+	{
+		if(x_slope == FALLING_SLOPE)
+		{
+			set_pin_high(X_STEP_PIN);
+			x_slope = RISING_SLOPE;
+		}
+		else
+		{
+			set_pin_low(X_STEP_PIN);
+			x_slope = FALLING_SLOPE;
+			x_steps--;
+		}
+	}
+}
+
+timer_y_code()
+{
+	if (!y_steps) // if motor step is expected to be performed
+	{
+		if(y_slope == FALLING_SLOPE)
+		{
+			set_pin_high(Y_STEP_PIN);
+			y_slope = RISING_SLOPE;
+		}
+		else
+		{
+			set_pin_low(Y_STEP_PIN);
+			y_slope = FALLING_SLOPE;
+			y_steps--;
+		}
+	}
+}
+
+prepare_timer(uint8_t timer, uint32_t time, uint8_t direction)
+{
+	if (timer == X_TIMER)
+	{
+		x_slope = FALLING_SLOPE;
+		if(direction == DIR_LEFT)
+		{
+			set_pin_high(X_DIR_PIN);
+		}
+		else
+		{
+			set_pin_low(X_DIR_PIN);
+		}
+		init_timer_x(time);
+	}
+	else if (timer == Y_TIMER)
+	{
+		x_slope = FALLING_SLOPE;
+		if(direction == DIR_LEFT)
+		{
+			set_pin_high(X_DIR_PIN);
+		}
+		else
+		{
+			set_pin_low(X_DIR_PIN);
+		}
+		init_timer_y(time);
+	}
+	
+	
+}
+
+onUartchar()
+{
+	x_val = getchar();
+	y_val = getchar();
+	uint8_t dir_x, dir_y;
+	
+	if (x_val > x_pos)
+	{
+		x_diff = x_val - x_pos
+		dir_x = DIR_LEFT;
+	}	
+	else
+	{
+		x_diff = x_pos - x_val;
+		dir_x = DIR_RIGHT;
+	}
+	
+	if (y_val > y_pos)
+	{
+		y_diff = y_val - y_pos
+		dir_y = DIR_LEFT;
+	}	
+	else
+	{
+		y_diff = y_pos - y_val;
+		dir_y = DIR_LEFT;
+	}
+	
+	x_pos = x_val; // updating current motor x position
+	y_pos = y_val; // updating current motor y position
+	x_steps = x_diff * STEPS_PER_LSB;
+	y_steps = y_diff * STEPS_PER_LSB;
+	uint32_t movement_time = MIN_MOTOR_PERIOD;
+	/* calculating movement time basing on step count */
+	movement_time *= (x_steps > y_steps ? x_steps : y_steps); 
+	/* Multyplying by 2 to get half period time */
+	x_delay = movement / (2 * x_steps);
+	y_delay = movement / (2 * y_steps);
+	
+	prepare_timer(X_TIMER, x_delay, dir_x);
+	prepare_timer(Y_TIMER, y_delay, dir_y);
+	
+}

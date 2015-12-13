@@ -3,27 +3,31 @@ LAG_atmega.elf:     file format elf32-avr
 
 Sections:
 Idx Name          Size      VMA       LMA       File off  Algn
-  0 .text         000001bc  00000000  00000000  00000074  2**1
+  0 .text         00000286  00000000  00000000  00000074  2**1
                   CONTENTS, ALLOC, LOAD, READONLY, CODE
-  1 .bss          00000006  00800060  00800060  00000230  2**0
+  1 .data         00000000  00800060  00800060  000002fa  2**0
+                  CONTENTS, ALLOC, LOAD, DATA
+  2 .bss          00000006  00800060  00800060  000002fa  2**0
                   ALLOC
-  2 .comment      00000030  00000000  00000000  00000230  2**0
+  3 .comment      00000030  00000000  00000000  000002fa  2**0
                   CONTENTS, READONLY
-  3 .debug_aranges 00000090  00000000  00000000  00000260  2**0
+  4 .note.gnu.avr.deviceinfo 0000003c  00000000  00000000  0000032c  2**2
+                  CONTENTS, READONLY
+  5 .debug_aranges 000000b8  00000000  00000000  00000368  2**0
                   CONTENTS, READONLY, DEBUGGING
-  4 .debug_info   000002e7  00000000  00000000  000002f0  2**0
+  6 .debug_info   00000442  00000000  00000000  00000420  2**0
                   CONTENTS, READONLY, DEBUGGING
-  5 .debug_abbrev 000001aa  00000000  00000000  000005d7  2**0
+  7 .debug_abbrev 00000211  00000000  00000000  00000862  2**0
                   CONTENTS, READONLY, DEBUGGING
-  6 .debug_line   000002c4  00000000  00000000  00000781  2**0
+  8 .debug_line   000002d9  00000000  00000000  00000a73  2**0
                   CONTENTS, READONLY, DEBUGGING
-  7 .debug_frame  00000100  00000000  00000000  00000a48  2**2
+  9 .debug_frame  000001b8  00000000  00000000  00000d4c  2**2
                   CONTENTS, READONLY, DEBUGGING
-  8 .debug_str    000001c8  00000000  00000000  00000b48  2**0
+ 10 .debug_str    0000021b  00000000  00000000  00000f04  2**0
                   CONTENTS, READONLY, DEBUGGING
-  9 .debug_loc    000000c1  00000000  00000000  00000d10  2**0
+ 11 .debug_loc    00000228  00000000  00000000  0000111f  2**0
                   CONTENTS, READONLY, DEBUGGING
- 10 .debug_ranges 00000060  00000000  00000000  00000dd1  2**0
+ 12 .debug_ranges 00000088  00000000  00000000  00001347  2**0
                   CONTENTS, READONLY, DEBUGGING
 
 Disassembly of section .text:
@@ -33,12 +37,12 @@ Disassembly of section .text:
    4:	0c 94 3c 00 	jmp	0x78	; 0x78 <__bad_interrupt>
    8:	0c 94 3c 00 	jmp	0x78	; 0x78 <__bad_interrupt>
    c:	0c 94 3c 00 	jmp	0x78	; 0x78 <__bad_interrupt>
-  10:	0c 94 66 00 	jmp	0xcc	; 0xcc <__vector_4>
+  10:	0c 94 92 00 	jmp	0x124	; 0x124 <__vector_4>
   14:	0c 94 3c 00 	jmp	0x78	; 0x78 <__bad_interrupt>
   18:	0c 94 3c 00 	jmp	0x78	; 0x78 <__bad_interrupt>
   1c:	0c 94 3c 00 	jmp	0x78	; 0x78 <__bad_interrupt>
   20:	0c 94 3c 00 	jmp	0x78	; 0x78 <__bad_interrupt>
-  24:	0c 94 3e 00 	jmp	0x7c	; 0x7c <__vector_9>
+  24:	0c 94 55 00 	jmp	0xaa	; 0xaa <__vector_9>
   28:	0c 94 3c 00 	jmp	0x78	; 0x78 <__bad_interrupt>
   2c:	0c 94 3c 00 	jmp	0x78	; 0x78 <__bad_interrupt>
   30:	0c 94 3c 00 	jmp	0x78	; 0x78 <__bad_interrupt>
@@ -72,256 +76,369 @@ Disassembly of section .text:
   6a:	a6 36       	cpi	r26, 0x66	; 102
   6c:	b2 07       	cpc	r27, r18
   6e:	e1 f7       	brne	.-8      	; 0x68 <.do_clear_bss_loop>
-  70:	0e 94 98 00 	call	0x130	; 0x130 <main>
-  74:	0c 94 dc 00 	jmp	0x1b8	; 0x1b8 <_exit>
+  70:	0e 94 dd 00 	call	0x1ba	; 0x1ba <main>
+  74:	0c 94 41 01 	jmp	0x282	; 0x282 <_exit>
 
 00000078 <__bad_interrupt>:
-  78:	0c 94 8e 00 	jmp	0x11c	; 0x11c <__vector_default>
+  78:	0c 94 3e 00 	jmp	0x7c	; 0x7c <__vector_default>
 
-0000007c <__vector_9>:
-volatile char a,b;			//start counter values
-uint16_t count0, count2;	//numbers of steps
+0000007c <__vector_default>:
+		TCNT2=255-b;							//set start of countering
+	}
+}
 
-
-ISR(TIMER0_OVF_vect) 
+ISR(BADISR_vect)
 {
   7c:	1f 92       	push	r1
   7e:	0f 92       	push	r0
   80:	0f b6       	in	r0, 0x3f	; 63
   82:	0f 92       	push	r0
   84:	11 24       	eor	r1, r1
-  86:	8f 93       	push	r24
-  88:	9f 93       	push	r25
-	if(count0)
-  8a:	80 91 63 00 	lds	r24, 0x0063
-  8e:	90 91 64 00 	lds	r25, 0x0064
-  92:	89 2b       	or	r24, r25
-  94:	a1 f0       	breq	.+40     	; 0xbe <__vector_9+0x42>
-	{
-		PORTA^=X_STEP_PIN;						//toggle x
-  96:	9b b3       	in	r25, 0x1b	; 27
-  98:	82 e0       	ldi	r24, 0x02	; 2
-  9a:	89 27       	eor	r24, r25
-  9c:	8b bb       	out	0x1b, r24	; 27
-		if(!(--count0)) PORTA|=X_ENABLE_PIN;	//stepping is done, so disable 
-  9e:	80 91 63 00 	lds	r24, 0x0063
-  a2:	90 91 64 00 	lds	r25, 0x0064
-  a6:	01 97       	sbiw	r24, 0x01	; 1
-  a8:	90 93 64 00 	sts	0x0064, r25
-  ac:	80 93 63 00 	sts	0x0063, r24
-  b0:	89 2b       	or	r24, r25
-  b2:	09 f4       	brne	.+2      	; 0xb6 <__vector_9+0x3a>
-  b4:	dc 9a       	sbi	0x1b, 4	; 27
-		TCNT0=255-a;							//set start of countering
-  b6:	80 91 65 00 	lds	r24, 0x0065
-  ba:	80 95       	com	r24
-  bc:	82 bf       	out	0x32, r24	; 50
+												// user code here
+}
+  86:	0f 90       	pop	r0
+  88:	0f be       	out	0x3f, r0	; 63
+  8a:	0f 90       	pop	r0
+  8c:	1f 90       	pop	r1
+  8e:	18 95       	reti
+
+00000090 <set_pin_high>:
+		if (((b >> 7) & 0x01) == 0x01) PORTA |= Y_DIR_PIN; else PORTA &= ~Y_DIR_PIN;
+		count2=(b & 0x7F) * 8;			//number of steps
 	}
 }
-  be:	9f 91       	pop	r25
-  c0:	8f 91       	pop	r24
-  c2:	0f 90       	pop	r0
-  c4:	0f be       	out	0x3f, r0	; 63
-  c6:	0f 90       	pop	r0
-  c8:	1f 90       	pop	r1
-  ca:	18 95       	reti
 
-000000cc <__vector_4>:
+void set_pin_high(uint8_t pin) { PORTA |= pin; }
+  90:	9b b3       	in	r25, 0x1b	; 27
+  92:	89 2b       	or	r24, r25
+  94:	8b bb       	out	0x1b, r24	; 27
+  96:	08 95       	ret
+
+00000098 <set_pin_low>:
+void set_pin_low(uint8_t pin)  { PORTA &= ~pin; }
+  98:	9b b3       	in	r25, 0x1b	; 27
+  9a:	80 95       	com	r24
+  9c:	98 23       	and	r25, r24
+  9e:	9b bb       	out	0x1b, r25	; 27
+  a0:	08 95       	ret
+
+000000a2 <toggle_pin>:
+void toggle_pin(uint8_t pin)   { PORTA ^= pin; }
+  a2:	9b b3       	in	r25, 0x1b	; 27
+  a4:	89 27       	eor	r24, r25
+  a6:	8b bb       	out	0x1b, r24	; 27
+  a8:	08 95       	ret
+
+000000aa <__vector_9>:
+volatile char a,b;			//start counter values
+uint16_t count0, count2;	//numbers of steps
+
+
+ISR(TIMER0_OVF_vect) 
+{
+  aa:	1f 92       	push	r1
+  ac:	0f 92       	push	r0
+  ae:	0f b6       	in	r0, 0x3f	; 63
+  b0:	0f 92       	push	r0
+  b2:	11 24       	eor	r1, r1
+  b4:	2f 93       	push	r18
+  b6:	3f 93       	push	r19
+  b8:	4f 93       	push	r20
+  ba:	5f 93       	push	r21
+  bc:	6f 93       	push	r22
+  be:	7f 93       	push	r23
+  c0:	8f 93       	push	r24
+  c2:	9f 93       	push	r25
+  c4:	af 93       	push	r26
+  c6:	bf 93       	push	r27
+  c8:	ef 93       	push	r30
+  ca:	ff 93       	push	r31
+	if(count0)
+  cc:	80 91 63 00 	lds	r24, 0x0063
+  d0:	90 91 64 00 	lds	r25, 0x0064
+  d4:	89 2b       	or	r24, r25
+  d6:	a9 f0       	breq	.+42     	; 0x102 <__vector_9+0x58>
+	{
+		toggle_pin(X_STEP_PIN);						//toggle x
+  d8:	82 e0       	ldi	r24, 0x02	; 2
+  da:	0e 94 51 00 	call	0xa2	; 0xa2 <toggle_pin>
+		if(!(--count0)) set_pin_high(X_ENABLE_PIN);	//stepping is done, so disable 
+  de:	80 91 63 00 	lds	r24, 0x0063
+  e2:	90 91 64 00 	lds	r25, 0x0064
+  e6:	01 97       	sbiw	r24, 0x01	; 1
+  e8:	90 93 64 00 	sts	0x0064, r25
+  ec:	80 93 63 00 	sts	0x0063, r24
+  f0:	89 2b       	or	r24, r25
+  f2:	19 f4       	brne	.+6      	; 0xfa <__vector_9+0x50>
+  f4:	80 e1       	ldi	r24, 0x10	; 16
+  f6:	0e 94 48 00 	call	0x90	; 0x90 <set_pin_high>
+		TCNT0=255-a;							//set start of countering
+  fa:	80 91 65 00 	lds	r24, 0x0065
+  fe:	80 95       	com	r24
+ 100:	82 bf       	out	0x32, r24	; 50
+	}
+}
+ 102:	ff 91       	pop	r31
+ 104:	ef 91       	pop	r30
+ 106:	bf 91       	pop	r27
+ 108:	af 91       	pop	r26
+ 10a:	9f 91       	pop	r25
+ 10c:	8f 91       	pop	r24
+ 10e:	7f 91       	pop	r23
+ 110:	6f 91       	pop	r22
+ 112:	5f 91       	pop	r21
+ 114:	4f 91       	pop	r20
+ 116:	3f 91       	pop	r19
+ 118:	2f 91       	pop	r18
+ 11a:	0f 90       	pop	r0
+ 11c:	0f be       	out	0x3f, r0	; 63
+ 11e:	0f 90       	pop	r0
+ 120:	1f 90       	pop	r1
+ 122:	18 95       	reti
+
+00000124 <__vector_4>:
 
 ISR(TIMER2_OVF_vect) 
 {
-  cc:	1f 92       	push	r1
-  ce:	0f 92       	push	r0
-  d0:	0f b6       	in	r0, 0x3f	; 63
-  d2:	0f 92       	push	r0
-  d4:	11 24       	eor	r1, r1
-  d6:	8f 93       	push	r24
-  d8:	9f 93       	push	r25
+ 124:	1f 92       	push	r1
+ 126:	0f 92       	push	r0
+ 128:	0f b6       	in	r0, 0x3f	; 63
+ 12a:	0f 92       	push	r0
+ 12c:	11 24       	eor	r1, r1
+ 12e:	2f 93       	push	r18
+ 130:	3f 93       	push	r19
+ 132:	4f 93       	push	r20
+ 134:	5f 93       	push	r21
+ 136:	6f 93       	push	r22
+ 138:	7f 93       	push	r23
+ 13a:	8f 93       	push	r24
+ 13c:	9f 93       	push	r25
+ 13e:	af 93       	push	r26
+ 140:	bf 93       	push	r27
+ 142:	ef 93       	push	r30
+ 144:	ff 93       	push	r31
 	if(count2)
-  da:	80 91 61 00 	lds	r24, 0x0061
-  de:	90 91 62 00 	lds	r25, 0x0062
-  e2:	89 2b       	or	r24, r25
-  e4:	a1 f0       	breq	.+40     	; 0x10e <__vector_4+0x42>
+ 146:	80 91 61 00 	lds	r24, 0x0061
+ 14a:	90 91 62 00 	lds	r25, 0x0062
+ 14e:	89 2b       	or	r24, r25
+ 150:	a9 f0       	breq	.+42     	; 0x17c <__vector_4+0x58>
 	{
-		PORTA^=Y_STEP_PIN;						//toggle x
-  e6:	9b b3       	in	r25, 0x1b	; 27
-  e8:	88 e0       	ldi	r24, 0x08	; 8
-  ea:	89 27       	eor	r24, r25
-  ec:	8b bb       	out	0x1b, r24	; 27
-		if(!(--count2)) PORTA|=Y_ENABLE_PIN;	//stepping is done, so disable
-  ee:	80 91 61 00 	lds	r24, 0x0061
-  f2:	90 91 62 00 	lds	r25, 0x0062
-  f6:	01 97       	sbiw	r24, 0x01	; 1
-  f8:	90 93 62 00 	sts	0x0062, r25
-  fc:	80 93 61 00 	sts	0x0061, r24
- 100:	89 2b       	or	r24, r25
- 102:	09 f4       	brne	.+2      	; 0x106 <__vector_4+0x3a>
- 104:	dd 9a       	sbi	0x1b, 5	; 27
+		toggle_pin(Y_STEP_PIN);						//toggle x
+ 152:	88 e0       	ldi	r24, 0x08	; 8
+ 154:	0e 94 51 00 	call	0xa2	; 0xa2 <toggle_pin>
+		if(!(--count2)) set_pin_high(Y_ENABLE_PIN);	//stepping is done, so disable
+ 158:	80 91 61 00 	lds	r24, 0x0061
+ 15c:	90 91 62 00 	lds	r25, 0x0062
+ 160:	01 97       	sbiw	r24, 0x01	; 1
+ 162:	90 93 62 00 	sts	0x0062, r25
+ 166:	80 93 61 00 	sts	0x0061, r24
+ 16a:	89 2b       	or	r24, r25
+ 16c:	19 f4       	brne	.+6      	; 0x174 <__vector_4+0x50>
+ 16e:	80 e2       	ldi	r24, 0x20	; 32
+ 170:	0e 94 48 00 	call	0x90	; 0x90 <set_pin_high>
 		TCNT2=255-b;							//set start of countering
- 106:	80 91 60 00 	lds	r24, 0x0060
- 10a:	80 95       	com	r24
- 10c:	84 bd       	out	0x24, r24	; 36
+ 174:	80 91 60 00 	lds	r24, 0x0060
+ 178:	80 95       	com	r24
+ 17a:	84 bd       	out	0x24, r24	; 36
 	}
 }
- 10e:	9f 91       	pop	r25
- 110:	8f 91       	pop	r24
- 112:	0f 90       	pop	r0
- 114:	0f be       	out	0x3f, r0	; 63
- 116:	0f 90       	pop	r0
- 118:	1f 90       	pop	r1
- 11a:	18 95       	reti
+ 17c:	ff 91       	pop	r31
+ 17e:	ef 91       	pop	r30
+ 180:	bf 91       	pop	r27
+ 182:	af 91       	pop	r26
+ 184:	9f 91       	pop	r25
+ 186:	8f 91       	pop	r24
+ 188:	7f 91       	pop	r23
+ 18a:	6f 91       	pop	r22
+ 18c:	5f 91       	pop	r21
+ 18e:	4f 91       	pop	r20
+ 190:	3f 91       	pop	r19
+ 192:	2f 91       	pop	r18
+ 194:	0f 90       	pop	r0
+ 196:	0f be       	out	0x3f, r0	; 63
+ 198:	0f 90       	pop	r0
+ 19a:	1f 90       	pop	r1
+ 19c:	18 95       	reti
 
-0000011c <__vector_default>:
+0000019e <enable_motors>:
+void set_pin_low(uint8_t pin)  { PORTA &= ~pin; }
+void toggle_pin(uint8_t pin)   { PORTA ^= pin; }
 
-ISR(BADISR_vect)
-{
- 11c:	1f 92       	push	r1
- 11e:	0f 92       	push	r0
- 120:	0f b6       	in	r0, 0x3f	; 63
- 122:	0f 92       	push	r0
- 124:	11 24       	eor	r1, r1
-												// user code here
+void enable_motors(void)
+{		
+	set_pin_low(X_ENABLE_PIN);
+ 19e:	80 e1       	ldi	r24, 0x10	; 16
+ 1a0:	0e 94 4c 00 	call	0x98	; 0x98 <set_pin_low>
+	set_pin_low(Y_ENABLE_PIN);
+ 1a4:	80 e2       	ldi	r24, 0x20	; 32
+ 1a6:	0e 94 4c 00 	call	0x98	; 0x98 <set_pin_low>
+ 1aa:	08 95       	ret
+
+000001ac <disable_motors>:
 }
- 126:	0f 90       	pop	r0
- 128:	0f be       	out	0x3f, r0	; 63
- 12a:	0f 90       	pop	r0
- 12c:	1f 90       	pop	r1
- 12e:	18 95       	reti
 
-00000130 <main>:
+void disable_motors(void)
+{
+	set_pin_high(X_ENABLE_PIN);
+ 1ac:	80 e1       	ldi	r24, 0x10	; 16
+ 1ae:	0e 94 48 00 	call	0x90	; 0x90 <set_pin_high>
+	set_pin_high(Y_ENABLE_PIN);
+ 1b2:	80 e2       	ldi	r24, 0x20	; 32
+ 1b4:	0e 94 48 00 	call	0x90	; 0x90 <set_pin_high>
+ 1b8:	08 95       	ret
+
+000001ba <main>:
 
 
 
 int main(void)
 {
 	DDRA=0xff;
- 130:	cf ef       	ldi	r28, 0xFF	; 255
- 132:	ca bb       	out	0x1a, r28	; 26
+ 1ba:	cf ef       	ldi	r28, 0xFF	; 255
+ 1bc:	ca bb       	out	0x1a, r28	; 26
 	PORTA=0;
- 134:	1b ba       	out	0x1b, r1	; 27
+ 1be:	1b ba       	out	0x1b, r1	; 27
+	disable_motors();
+ 1c0:	0e 94 d6 00 	call	0x1ac	; 0x1ac <disable_motors>
 	Timer0_Init();
- 136:	0e 94 bd 00 	call	0x17a	; 0x17a <Timer0_Init>
+ 1c4:	0e 94 22 01 	call	0x244	; 0x244 <Timer0_Init>
 	Timer2_Init();
- 13a:	0e 94 c5 00 	call	0x18a	; 0x18a <Timer2_Init>
+ 1c8:	0e 94 2a 01 	call	0x254	; 0x254 <Timer2_Init>
 	USART_Init();
- 13e:	0e 94 cd 00 	call	0x19a	; 0x19a <USART_Init>
+ 1cc:	0e 94 32 01 	call	0x264	; 0x264 <USART_Init>
 	a=255;						
- 142:	c0 93 65 00 	sts	0x0065, r28
+ 1d0:	c0 93 65 00 	sts	0x0065, r28
 	b=255;
- 146:	c0 93 60 00 	sts	0x0060, r28
+ 1d4:	c0 93 60 00 	sts	0x0060, r28
 	sei();
- 14a:	78 94       	sei
+ 1d8:	78 94       	sei
 	while(1)
 	{
 		a=USART_Receive();		//receive start of countering from UASRT
-		PORTA&=~X_ENABLE_PIN;	//enable
-		count0=100;				//number of steps
- 14c:	04 e6       	ldi	r16, 0x64	; 100
- 14e:	10 e0       	ldi	r17, 0x00	; 0
-		
+ 1da:	0e 94 3d 01 	call	0x27a	; 0x27a <USART_Receive>
+ 1de:	80 93 65 00 	sts	0x0065, r24
 		b=USART_Receive();		//receive start of countering from UASRT
-		PORTA&=~Y_ENABLE_PIN;	//enable
-		count2=200;				//number of steps
- 150:	c8 ec       	ldi	r28, 0xC8	; 200
- 152:	d0 e0       	ldi	r29, 0x00	; 0
-	a=255;						
-	b=255;
-	sei();
-	while(1)
-	{
-		a=USART_Receive();		//receive start of countering from UASRT
- 154:	0e 94 d8 00 	call	0x1b0	; 0x1b0 <USART_Receive>
- 158:	80 93 65 00 	sts	0x0065, r24
-		PORTA&=~X_ENABLE_PIN;	//enable
- 15c:	dc 98       	cbi	0x1b, 4	; 27
-		count0=100;				//number of steps
- 15e:	10 93 64 00 	sts	0x0064, r17
- 162:	00 93 63 00 	sts	0x0063, r16
+ 1e2:	0e 94 3d 01 	call	0x27a	; 0x27a <USART_Receive>
+ 1e6:	80 93 60 00 	sts	0x0060, r24
+		enable_motors();
+ 1ea:	0e 94 cf 00 	call	0x19e	; 0x19e <enable_motors>
 		
-		b=USART_Receive();		//receive start of countering from UASRT
- 166:	0e 94 d8 00 	call	0x1b0	; 0x1b0 <USART_Receive>
- 16a:	80 93 60 00 	sts	0x0060, r24
-		PORTA&=~Y_ENABLE_PIN;	//enable
- 16e:	dd 98       	cbi	0x1b, 5	; 27
-		count2=200;				//number of steps
- 170:	d0 93 62 00 	sts	0x0062, r29
- 174:	c0 93 61 00 	sts	0x0061, r28
- 178:	ed cf       	rjmp	.-38     	; 0x154 <main+0x24>
+		if (((a >> 7) & 0x01) == 0x01) PORTA |= X_DIR_PIN; else PORTA &= ~X_DIR_PIN;
+ 1ee:	80 91 65 00 	lds	r24, 0x0065
+ 1f2:	88 23       	and	r24, r24
+ 1f4:	14 f4       	brge	.+4      	; 0x1fa <main+0x40>
+ 1f6:	d8 9a       	sbi	0x1b, 0	; 27
+ 1f8:	01 c0       	rjmp	.+2      	; 0x1fc <main+0x42>
+ 1fa:	d8 98       	cbi	0x1b, 0	; 27
+		count0=(a & 0x7F) * 8;				//number of steps
+ 1fc:	80 91 65 00 	lds	r24, 0x0065
+ 200:	8f 77       	andi	r24, 0x7F	; 127
+ 202:	90 e0       	ldi	r25, 0x00	; 0
+ 204:	88 0f       	add	r24, r24
+ 206:	99 1f       	adc	r25, r25
+ 208:	88 0f       	add	r24, r24
+ 20a:	99 1f       	adc	r25, r25
+ 20c:	88 0f       	add	r24, r24
+ 20e:	99 1f       	adc	r25, r25
+ 210:	90 93 64 00 	sts	0x0064, r25
+ 214:	80 93 63 00 	sts	0x0063, r24
 
-0000017a <Timer0_Init>:
+		if (((b >> 7) & 0x01) == 0x01) PORTA |= Y_DIR_PIN; else PORTA &= ~Y_DIR_PIN;
+ 218:	80 91 60 00 	lds	r24, 0x0060
+ 21c:	88 23       	and	r24, r24
+ 21e:	14 f4       	brge	.+4      	; 0x224 <main+0x6a>
+ 220:	da 9a       	sbi	0x1b, 2	; 27
+ 222:	01 c0       	rjmp	.+2      	; 0x226 <main+0x6c>
+ 224:	da 98       	cbi	0x1b, 2	; 27
+		count2=(b & 0x7F) * 8;			//number of steps
+ 226:	80 91 60 00 	lds	r24, 0x0060
+ 22a:	8f 77       	andi	r24, 0x7F	; 127
+ 22c:	90 e0       	ldi	r25, 0x00	; 0
+ 22e:	88 0f       	add	r24, r24
+ 230:	99 1f       	adc	r25, r25
+ 232:	88 0f       	add	r24, r24
+ 234:	99 1f       	adc	r25, r25
+ 236:	88 0f       	add	r24, r24
+ 238:	99 1f       	adc	r25, r25
+ 23a:	90 93 62 00 	sts	0x0062, r25
+ 23e:	80 93 61 00 	sts	0x0061, r24
+	}
+ 242:	cb cf       	rjmp	.-106    	; 0x1da <main+0x20>
+
+00000244 <Timer0_Init>:
  */ 
 #include <avr/io.h>
 
 void Timer0_Init(void)
 {
 	TCNT0 = 0;
- 17a:	12 be       	out	0x32, r1	; 50
+ 244:	12 be       	out	0x32, r1	; 50
 	TCCR0 |= (1<<CS01)|(1<<CS00);
- 17c:	83 b7       	in	r24, 0x33	; 51
- 17e:	83 60       	ori	r24, 0x03	; 3
- 180:	83 bf       	out	0x33, r24	; 51
+ 246:	83 b7       	in	r24, 0x33	; 51
+ 248:	83 60       	ori	r24, 0x03	; 3
+ 24a:	83 bf       	out	0x33, r24	; 51
 	TIMSK |= (1<<TOIE0);
- 182:	89 b7       	in	r24, 0x39	; 57
- 184:	81 60       	ori	r24, 0x01	; 1
- 186:	89 bf       	out	0x39, r24	; 57
- 188:	08 95       	ret
+ 24c:	89 b7       	in	r24, 0x39	; 57
+ 24e:	81 60       	ori	r24, 0x01	; 1
+ 250:	89 bf       	out	0x39, r24	; 57
+ 252:	08 95       	ret
 
-0000018a <Timer2_Init>:
+00000254 <Timer2_Init>:
 }
 
 
 void Timer2_Init(void)
 {
 	TCNT2 = 0;
- 18a:	14 bc       	out	0x24, r1	; 36
+ 254:	14 bc       	out	0x24, r1	; 36
 	TCCR2 |= (1<<CS21)|(1<<CS20) ;
- 18c:	85 b5       	in	r24, 0x25	; 37
- 18e:	83 60       	ori	r24, 0x03	; 3
- 190:	85 bd       	out	0x25, r24	; 37
+ 256:	85 b5       	in	r24, 0x25	; 37
+ 258:	83 60       	ori	r24, 0x03	; 3
+ 25a:	85 bd       	out	0x25, r24	; 37
 	TIMSK |= (1<<TOIE2);
- 192:	89 b7       	in	r24, 0x39	; 57
- 194:	80 64       	ori	r24, 0x40	; 64
- 196:	89 bf       	out	0x39, r24	; 57
- 198:	08 95       	ret
+ 25c:	89 b7       	in	r24, 0x39	; 57
+ 25e:	80 64       	ori	r24, 0x40	; 64
+ 260:	89 bf       	out	0x39, r24	; 57
+ 262:	08 95       	ret
 
-0000019a <USART_Init>:
+00000264 <USART_Init>:
 #include <avr/io.h>
 #include <stdio.h>
 
 void USART_Init(void)
 {
 	UCSRB|=(1<<RXCIE)|(1<<RXEN)|(1<<TXEN);	//RXCIE-interrupt reciver and RX/TX-enable
- 19a:	8a b1       	in	r24, 0x0a	; 10
- 19c:	88 69       	ori	r24, 0x98	; 152
- 19e:	8a b9       	out	0x0a, r24	; 10
+ 264:	8a b1       	in	r24, 0x0a	; 10
+ 266:	88 69       	ori	r24, 0x98	; 152
+ 268:	8a b9       	out	0x0a, r24	; 10
 	UBRRH=0;								//baudrate 9600 for 1MHz
- 1a0:	10 bc       	out	0x20, r1	; 32
+ 26a:	10 bc       	out	0x20, r1	; 32
 	UBRRL=12;								//baudrate 9600 for 1MHz
- 1a2:	8c e0       	ldi	r24, 0x0C	; 12
- 1a4:	89 b9       	out	0x09, r24	; 9
+ 26c:	8c e0       	ldi	r24, 0x0C	; 12
+ 26e:	89 b9       	out	0x09, r24	; 9
 	UCSRA=(1<<U2X);							//double speed mode BAUD=fosc/8(UBRR+1)
- 1a6:	82 e0       	ldi	r24, 0x02	; 2
- 1a8:	8b b9       	out	0x0b, r24	; 11
+ 270:	82 e0       	ldi	r24, 0x02	; 2
+ 272:	8b b9       	out	0x0b, r24	; 11
 	UCSRC=(1<<URSEL)|(1<<UCSZ0)|(1<<UCSZ1);	//8-bit data,URSEL - writing UCRSC
- 1aa:	86 e8       	ldi	r24, 0x86	; 134
- 1ac:	80 bd       	out	0x20, r24	; 32
- 1ae:	08 95       	ret
+ 274:	86 e8       	ldi	r24, 0x86	; 134
+ 276:	80 bd       	out	0x20, r24	; 32
+ 278:	08 95       	ret
 
-000001b0 <USART_Receive>:
+0000027a <USART_Receive>:
 }
 
 
 char USART_Receive( void )
 {
 	while ( !(UCSRA & (1<<RXC)) );			//Wait for data to be received
- 1b0:	5f 9b       	sbis	0x0b, 7	; 11
- 1b2:	fe cf       	rjmp	.-4      	; 0x1b0 <USART_Receive>
+ 27a:	5f 9b       	sbis	0x0b, 7	; 11
+ 27c:	fe cf       	rjmp	.-4      	; 0x27a <USART_Receive>
 	return UDR;								//Get and return received data from buffer
- 1b4:	8c b1       	in	r24, 0x0c	; 12
- 1b6:	08 95       	ret
+ 27e:	8c b1       	in	r24, 0x0c	; 12
+ 280:	08 95       	ret
 
-000001b8 <_exit>:
- 1b8:	f8 94       	cli
+00000282 <_exit>:
+ 282:	f8 94       	cli
 
-000001ba <__stop_program>:
- 1ba:	ff cf       	rjmp	.-2      	; 0x1ba <__stop_program>
+00000284 <__stop_program>:
+ 284:	ff cf       	rjmp	.-2      	; 0x284 <__stop_program>
